@@ -2,7 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import app from './app.js';
 import Pusher from 'pusher';
-import Chat from './models/chatSchema.js';
 
 const port = process.env.PORT || 9000;
 
@@ -31,6 +30,15 @@ db.once('open', () => {
 
   changeStream.on('change', (change) => {
     console.log({ change });
+    if (change.operationType === 'insert') {
+      const messageDetails = change.fullDocument;
+      pusher.trigger('messages', 'inserted', {
+        name: messageDetails.name,
+        message: messageDetails.message,
+        timeStamp: messageDetails.timeStamp,
+        received: messageDetails.received,
+      });
+    } else console.log('Error triggered Pusher');
   });
 });
 
